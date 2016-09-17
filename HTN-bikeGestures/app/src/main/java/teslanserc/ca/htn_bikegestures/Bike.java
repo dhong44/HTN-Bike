@@ -44,7 +44,10 @@ public class Bike extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bike);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
+            requestPermissions(new String[]{Manifest.permission.INTERNET}, 1);
+        }
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
@@ -88,7 +91,10 @@ public class Bike extends Activity {
 
         locationManager.requestLocationUpdates(provider, 200, 1, myListener);
 
-        tts = new talkToServer(macAddress, "bike");
+        tts = new talkToServer("bike1", "bike");
+        try {
+            tts.upload(0.000, 0.000, 0.000, "N", 0);
+        }catch(Exception e){System.out.println(e.getMessage()); System.exit(1); }
         lastTime = System.currentTimeMillis();
     }
 
@@ -117,9 +123,9 @@ public class Bike extends Activity {
             tMY.setText(Double.toString(mY));
             tMZ.setText(Double.toString(mZ));
 
-            if (System.currentTimeMillis() - lastTime > 5000)
+            if (System.currentTimeMillis() - lastTime > 5)
             {
-                if(aX>5&&aY>5&&aZ>5){
+                if(Math.sqrt(Math.pow(aX,2)+Math.pow(aY,2)+Math.pow(aZ,2))>5){
                     if (!status) {
                         try {
                             tts.upload(gLati, gLongi, 0.000, "N", 1);

@@ -24,6 +24,7 @@ public class talkToServer {
         URL requestURL = new URL(serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
                 macAddress, vehicleType, latitude, longitude, speed, direction, status));
         HttpURLConnection requestConnection = (HttpURLConnection) requestURL.openConnection();
+        requestConnection.setRequestMethod("GET");
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
             String response = in.readLine();
