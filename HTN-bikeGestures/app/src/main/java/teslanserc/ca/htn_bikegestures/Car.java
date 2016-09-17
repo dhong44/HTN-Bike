@@ -42,6 +42,8 @@ public class Car extends Activity {
 
     private talkToServer tts;
 
+    boolean slowDown = false;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_car);
@@ -88,10 +90,15 @@ public class Car extends Activity {
             @Override
             public void run() {
                 String[][] bikes = tts.retrieve(gLati, gLongi);
-                boolean slowDown = false;
+                slowDown = false;
                 for (int i = 0; i < bikes.length; i++) {
-                    if (bikes[i][6] > 0)
+                    if (Integer.parseInt(bikes[i][6]) > 0) {
+                        slowDown = true;
+                        break;
+                    }
                 }
+
+
             }
         }, 0, 5000);
     }
