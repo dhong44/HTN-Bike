@@ -42,7 +42,7 @@ import java.util.UUID;
 
 public class Bike extends Activity {
 
-    private double aX, aY, aZ, mX, mY, mZ, gLati, gLongi;
+    private double aX, aY, aZ, mX, mY, mZ, gLati, gLongi, lastLat, lastLong, direction;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -90,10 +90,9 @@ public class Bike extends Activity {
         mY = 0;
         mZ = 0;
 
-        WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo info = manager.getConnectionInfo();
-        macAddress = info.getMacAddress();
-
+        lastLat=Double.NaN;
+        lastLong=Double.NaN;
+        
         boolean connected = PebbleKit.isWatchConnected(getApplicationContext());
         Toast.makeText(getApplicationContext(), connected?"Connected":"not", Toast.LENGTH_LONG);
         if (connected) {
@@ -228,7 +227,7 @@ public class Bike extends Activity {
                         WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
 
                         wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
-                                macAddress, "bike", gLati, gLongi, 0.000, "N", 1)});
+                                macAddress, "bike", gLati, gLongi, 0.000, getOrientation(direction), 1)});
                         Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
                         status = !status;
                     }
@@ -236,7 +235,7 @@ public class Bike extends Activity {
                         WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
 
                         wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
-                                macAddress, "bike", gLati, gLongi, 0.000, "N", 0)});
+                                macAddress, "bike", gLati, gLongi, 0.000, getOrientation(direction), 0)});
                         Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
                         status = !status;
                     }
@@ -250,12 +249,36 @@ public class Bike extends Activity {
         }
     }
 
+    public String getOrientation(double angle){
+        angle = Math.toDegrees(angle);
+        if((int)angle>=-45&&(int)angle<45){
+            return "E";
+        }
+        else if((int)angle>=45&&(int)angle<135){
+            return "N";
+        }
+        else if((int)angle>=-135&&(int)angle<=-45){
+            return "S";
+        }
+        else{
+            return "E";
+        }
+    }
+
     private class myLocationListener implements LocationListener {
         public void onLocationChanged(Location location){
+            if(lastLat==Double.NaN||lastLong==Double.NaN){
+                lastLat=location.getLatitude();
+                lastLong=location.getLongitude();
+            }
             gLati=location.getLatitude();
             gLongi=location.getLongitude();
             tLati.setText(Double.toString(gLati));
             tLongi.setText(Double.toString(gLongi));
+
+            direction=Math.atan2((gLati-lastLat),(gLongi-lastLong));
+            lastLat=gLati;
+            lastLong=gLongi;
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras){
