@@ -13,12 +13,13 @@ import java.net.HttpURLConnection;
 
 public class talkToServer {
 
-    private static final String vehicleType = "bike";
+    private String vehicleType;
     private static final String serverAddress = "";
     private String macAddress;
 
-    public talkToServer(String mac) {
+    public talkToServer(String mac, String type) {
         macAddress = mac;
+        vehicleType = type;
     }
 
     public int upload(double latitude, double longitude, double speed, int direction, int status) throws MalformedURLException, IOException{
@@ -40,18 +41,24 @@ public class talkToServer {
         }
     }
 
-    public int retrieve(long time, double latitude, double longitude, int direction) throws MalformedURLException, IOException {
-        URL requestURL = new URL(serverAddress + String.format("retrieve/id=%s&time=%d&latitude=%f&longitude=%f&direction=%d",
-                macAddress, (int) time, latitude, longitude, direction));
+    public String[][] retrieve(double latitude, double longitude, int direction) throws MalformedURLException, IOException {
+        URL requestURL = new URL(serverAddress + String.format("retrieve/id=%s&latitude=%f&longitude=%f&direction=%d",
+                macAddress, latitude, longitude, direction));
         HttpURLConnection requestConnection = (HttpURLConnection) requestURL.openConnection();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
             String response = in.readLine();
             if (!response.equalsIgnoreCase("FAILURE") && !response.isEmpty()) {
-                return 0;
+                String[][] rawVals;
+                String[] rawValsVehicles = response.split("\n");
+                rawVals = new String[rawValsVehicles.length][];
+                for (int i = 0; i < rawValsVehicles.length; i++) {
+                    rawVals[i] = rawValsVehicles[i].split(",");
+                }
+                return rawVals;
             }
             else {
-                return -1;
+                return null;
             }
         }
         finally {
