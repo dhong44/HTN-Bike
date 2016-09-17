@@ -23,12 +23,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Car extends Activity {
-    TextView speedView;
-
-    int speed;
-
-    long timeSinceLastRetrieve = 0;
-
     private SensorManager sensorManager;
     private LocationManager locationManager;
 
