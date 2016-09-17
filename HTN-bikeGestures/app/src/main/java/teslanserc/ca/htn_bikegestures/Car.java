@@ -122,7 +122,7 @@ public class Car extends Activity {
         }, 0, 5000);
     }
 
-    public String getOrientation(double angle){
+    /*public String getOrientation(double angle){
         angle = Math.toDegrees(angle);
         if((int)angle>=-45&&(int)angle<45){
             return "E";
@@ -141,28 +141,28 @@ public class Car extends Activity {
     public boolean behind(String orientation, double currentLat, double bikeLat, double currentLong, double bikeLong){
         switch(orientation){
             case "N":
-                if(currentLat<bikeLat){
+                if(currentLat<=bikeLat){
                     return true;
                 }
                 else{
                     return false;
                 }
             case "E":
-                if(currentLong<bikeLong){
+                if(currentLong<=bikeLong){
                     return true;
                 }
                 else{
                     return false;
                 }
             case "W":
-                if(currentLong>bikeLong){
+                if(currentLong>=bikeLong){
                     return true;
                 }
                 else{
                     return false;
                 }
             case "S":
-                if(currentLat>bikeLat){
+                if(currentLat>=bikeLat){
                     return true;
                 }
                 else{
@@ -171,22 +171,22 @@ public class Car extends Activity {
             default:
                 return false;
         }
-    }
+    }*/
 
     private class myLocationListener implements LocationListener {
         public void onLocationChanged(Location location){
-            if(lastLat==Double.NaN||lastLong==Double.NaN){
+            /*if(lastLat==Double.NaN||lastLong==Double.NaN){
                 lastLat=location.getLatitude();
                 lastLong=location.getLongitude();
-            }
+            }*/
             gLati=location.getLatitude();
             gLongi=location.getLongitude();
             tLati.setText(Double.toString(gLati));
             tLongi.setText(Double.toString(gLongi));
 
-            direction=Math.atan2((gLati - lastLat), (gLongi - lastLong));
+            /*direction=Math.atan2((gLati - lastLat), (gLongi - lastLong));
             lastLat=gLati;
-            lastLong=gLongi;
+            lastLong=gLongi;*/
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras){
@@ -209,15 +209,15 @@ public class Car extends Activity {
             slowDown = false;
             if(bikes!=null){
                 for (int i = 0; i < bikes.length; i++) {
-                    if(getOrientation(direction)==bikes[0].split(",")[5]){
-                        if(behind(getOrientation(direction), gLati, Double.parseDouble(bikes[0].split(",")[2]), gLongi, Double.parseDouble(bikes[0].split(",")[3]))){
+                    //if(getOrientation(direction)==bikes[0].split(",")[5]){
+                        //if(behind(getOrientation(direction), gLati, Double.parseDouble(bikes[0].split(",")[2]), gLongi, Double.parseDouble(bikes[0].split(",")[3]))){
                             Toast.makeText(getApplicationContext(), Integer.parseInt(bikes[0].split(",")[6]) + response, Toast.LENGTH_SHORT).show();
                             if (Integer.parseInt(bikes[0].split(",")[6]) > 0) {
                                 slowDown = true;
                                 break;
                             }
-                        }
-                    }
+                        //}
+                    //}
                 }
             }
         } catch (Exception e) {
