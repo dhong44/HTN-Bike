@@ -14,10 +14,11 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,10 +40,13 @@ public class Car extends Activity {
     private TextView tLati, tLongi;
 
     private Timer retrieveTimer;
+    private Handler handler = new Handler();
 
     private talkToServer tts;
 
     boolean slowDown = false;
+
+    ImageView carView;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,13 +56,9 @@ public class Car extends Activity {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
-        speed = 50;
-
         tLati=(TextView)findViewById(R.id.currentLati);
         tLongi=(TextView)findViewById(R.id.currentLongi);
-        speedView=(TextView)findViewById(R.id.speedView);
-
-        speedView.setText(Integer.toString(speed)+" km/h");
+        carView=(ImageView)findViewById(R.id.carView);
 
         WifiManager manager=(WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
@@ -89,16 +89,28 @@ public class Car extends Activity {
         retrieveTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                String[][] bikes = tts.retrieve(gLati, gLongi);
-                slowDown = false;
-                for (int i = 0; i < bikes.length; i++) {
-                    if (Integer.parseInt(bikes[i][6]) > 0) {
-                        slowDown = true;
-                        break;
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        String[][] bikes = tts.retrieve(gLati, gLongi);
+                        slowDown = false;
+                        if(bikes!=null){
+                            for (int i = 0; i < bikes.length; i++) {
+                                if (Integer.parseInt(bikes[i][6]) > 0) {
+                                    slowDown = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (slowDown){
+                            carView.setImageResource(R.drawable.car_red);
+                        }
+                        else {
+                            carView.setImageResource(R.drawable.car_green);
+                        }
                     }
-                }
-
-
+                });
             }
         }, 0, 5000);
     }
