@@ -17,7 +17,9 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.TextView;
 
+import java.io.IOException;
 import java.util.Timer;
+import java.util.TimerTask;
 
 public class Car extends Activity {
     TextView speedView;
@@ -37,6 +39,8 @@ public class Car extends Activity {
     private TextView tLati, tLongi;
 
     private Timer retrieveTimer;
+
+    private talkToServer tts;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,8 +81,19 @@ public class Car extends Activity {
 
         locationManager.requestLocationUpdates(provider, 200, 1, myListener);
 
+        tts = new talkToServer(macAddress, "car");
+
         retrieveTimer = new Timer();
-        
+        retrieveTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                String[][] bikes = tts.retrieve(gLati, gLongi);
+                boolean slowDown = false;
+                for (int i = 0; i < bikes.length; i++) {
+                    if (bikes[i][6] > 0)
+                }
+            }
+        }, 0, 5000);
     }
 
     private class myLocationListener implements LocationListener {

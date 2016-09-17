@@ -39,10 +39,11 @@ public class talkToServer {
         }
     }
 
-    public String[][] retrieve(double latitude, double longitude) throws MalformedURLException, IOException {
-        URL requestURL = new URL(serverAddress + String.format("retrieve/%f/%f", latitude, longitude));
-        HttpURLConnection requestConnection = (HttpURLConnection) requestURL.openConnection();
+    public String[][] retrieve(double latitude, double longitude) {
+        HttpURLConnection requestConnection = null;
         try {
+            URL requestURL = new URL(serverAddress + String.format("retrieve/%f/%f", latitude, longitude));
+            requestConnection = (HttpURLConnection) requestURL.openConnection();
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
             List<String[]> rawVals = new ArrayList<String[]>();
             String response = in.readLine();
@@ -55,8 +56,13 @@ public class talkToServer {
             }
             return rawVals.toArray(new String[rawVals.size()][]);
         }
+        catch (Exception e) {
+            return null;
+        }
         finally {
-            requestConnection.disconnect();
+            if (requestConnection != null) {
+                requestConnection.disconnect();
+            }
         }
     }
     
