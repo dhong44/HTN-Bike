@@ -19,11 +19,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private double aX, aY, aZ, gLati, gLongi;
+    private double aX, aY, aZ, mX, mY, mZ, gLati, gLongi;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -33,7 +32,7 @@ public class MainActivity extends Activity {
     private String provider;
     private myLocationListener myListener;
 
-    private TextView tX, tY, tZ, tLati, tLongi;
+    private TextView tX, tY, tZ, tMX, tMY, tMZ, tLati, tLongi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +46,15 @@ public class MainActivity extends Activity {
         tX=(TextView)findViewById(R.id.currentX);
         tY=(TextView)findViewById(R.id.currentY);
         tZ=(TextView)findViewById(R.id.currentZ);
+        tMX=(TextView)findViewById(R.id.maxX);
+        tMY=(TextView)findViewById(R.id.maxY);
+        tMZ=(TextView)findViewById(R.id.maxZ);
         tLati=(TextView)findViewById(R.id.currentLati);
         tLongi=(TextView)findViewById(R.id.currentLongi);
+
+        mX=0;
+        mY=0;
+        mZ=0;
 
         WifiManager manager=(WifiManager)getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
@@ -84,11 +90,25 @@ public class MainActivity extends Activity {
             aY=event.values[1];
             aZ=event.values[2];
 
+            if(mX<aX){
+                mX=aX;
+            }
+            if(mY<aY){
+                mY=aY;
+            }
+            if(mZ<aZ){
+                mZ=aZ;
+            }
+
             tX.setText(Double.toString(aX));
             tY.setText(Double.toString(aY));
             tZ.setText(Double.toString(aZ));
 
+            tMX.setText(Double.toString(mX));
+            tMY.setText(Double.toString(mY));
+            tMZ.setText(Double.toString(mZ));
 
+            //threshold of 5
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy){
@@ -102,8 +122,6 @@ public class MainActivity extends Activity {
             gLongi=location.getLongitude();
             tLati.setText(Double.toString(gLati));
             tLongi.setText(Double.toString(gLongi));
-
-            Toast.makeText(MainActivity.this, "Shit's updating", Toast.LENGTH_SHORT).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras){
