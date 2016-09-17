@@ -23,6 +23,8 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+    private long secSinceLastUpload;
+
     private double aX, aY, aZ, gLati, gLongi;
 
     private SensorManager sensorManager;

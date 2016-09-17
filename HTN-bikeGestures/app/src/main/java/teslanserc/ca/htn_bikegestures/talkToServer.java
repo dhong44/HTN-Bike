@@ -1,20 +1,18 @@
 package teslanserc.ca.htn_bikegestures;
 
-import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 public class talkToServer {
 
     private String vehicleType;
-    private static final String serverAddress = "";
+    private static final String serverAddress = "http://10.21.48.47:5000/";
     private String macAddress;
 
     public talkToServer(String mac, String type) {
@@ -22,14 +20,14 @@ public class talkToServer {
         vehicleType = type;
     }
 
-    public int upload(double latitude, double longitude, double speed, int direction, int status) throws MalformedURLException, IOException{
-        URL requestURL = new URL(serverAddress + String.format("upload/vehicletype=%s&id=%s&latitude=%f&longitude=%f&speed=%f&direction=%d&status=%d",
-                vehicleType, macAddress, latitude, longitude, speed, direction, status));
+    public int upload(double latitude, double longitude, double speed, String direction, int status) throws MalformedURLException, IOException{
+        URL requestURL = new URL(serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
+                macAddress, vehicleType, latitude, longitude, speed, direction, status));
         HttpURLConnection requestConnection = (HttpURLConnection) requestURL.openConnection();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
             String response = in.readLine();
-            if (!response.equalsIgnoreCase("SUCCESS")) {
+            if (response == null || response.isEmpty() || !response.equalsIgnoreCase("SUCCESS")) {
                 return -1;
             }
             else {
@@ -41,25 +39,21 @@ public class talkToServer {
         }
     }
 
-    public String[][] retrieve(double latitude, double longitude, int direction) throws MalformedURLException, IOException {
-        URL requestURL = new URL(serverAddress + String.format("retrieve/id=%s&latitude=%f&longitude=%f&direction=%d",
-                macAddress, latitude, longitude, direction));
+    public String[][] retrieve(double latitude, double longitude) throws MalformedURLException, IOException {
+        URL requestURL = new URL(serverAddress + String.format("retrieve/%f/%f", latitude, longitude));
         HttpURLConnection requestConnection = (HttpURLConnection) requestURL.openConnection();
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
+            List<String[]> rawVals = new ArrayList<String[]>();
             String response = in.readLine();
-            if (!response.equalsIgnoreCase("FAILURE") && !response.isEmpty()) {
-                String[][] rawVals;
-                String[] rawValsVehicles = response.split("\n");
-                rawVals = new String[rawValsVehicles.length][];
-                for (int i = 0; i < rawValsVehicles.length; i++) {
-                    rawVals[i] = rawValsVehicles[i].split(",");
-                }
-                return rawVals;
-            }
-            else {
+            if (response == null || response.equalsIgnoreCase("FAILURE") || response.isEmpty()) {
                 return null;
             }
+            while (response != null && response.length() > 0 && !response.isEmpty()) {
+                rawVals.add(response.split(","));
+                response = in.readLine();
+            }
+            return rawVals.toArray(new String[rawVals.size()][]);
         }
         finally {
             requestConnection.disconnect();
