@@ -34,6 +34,12 @@ public class Bike extends Activity {
 
     private TextView tX, tY, tZ, tMX, tMY, tMZ, tLati, tLongi;
 
+    private talkToServer tts;
+
+    private boolean status = false;
+
+    private long lastTime;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bike);
@@ -81,9 +87,13 @@ public class Bike extends Activity {
         }
 
         locationManager.requestLocationUpdates(provider, 200, 1, myListener);
+
+        tts = new talkToServer(macAddress, "bike");
+        lastTime = System.currentTimeMillis();
     }
 
     private class mySensorListener implements SensorEventListener {
+
         public void onSensorChanged(SensorEvent event){
             aX=event.values[0];
             aY=event.values[1];
@@ -107,8 +117,28 @@ public class Bike extends Activity {
             tMY.setText(Double.toString(mY));
             tMZ.setText(Double.toString(mZ));
 
-            if(aX>5&&aY>5&&aZ>5){
-                //call talk to server with status argument set to slow down
+            if (System.currentTimeMillis() - lastTime > 5000)
+            {
+                if(aX>5&&aY>5&&aZ>5){
+                    if (!status) {
+                        try {
+                            tts.upload(gLati, gLongi, 0.000, "N", 1);
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
+                    else {
+                        try {
+                            tts.upload(gLati, gLongi, 0.000, "N", 0);
+                        }
+                        catch (Exception e)
+                        {
+
+                        }
+                    }
+                }
             }
         }
 
