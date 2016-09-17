@@ -8,24 +8,6 @@ import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 
-<<<<<<< HEAD
-public class MainActivity extends Activity {
-
-    private long secSinceLastUpload;
-
-    private double aX, aY, aZ, gLati, gLongi;
-
-    private SensorManager sensorManager;
-    private Sensor accelerometer;
-
-    private LocationManager locationManager;
-    private Criteria criteria;
-    private String provider;
-    private myLocationListener myListener;
-=======
-import java.io.File;
->>>>>>> origin/master
-
 public class MainActivity extends Activity {
     Button bike, car;
 
