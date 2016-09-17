@@ -23,6 +23,9 @@ import android.provider.Settings;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.getpebble.android.kit.PebbleKit;
+import com.getpebble.android.kit.util.PebbleDictionary;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -35,6 +38,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.UUID;
 
 public class Bike extends Activity {
 
@@ -60,52 +64,94 @@ public class Bike extends Activity {
 
     private int eventDetectionState = 0;
 
+    private static final UUID pebAppUID = UUID.fromString("621867f0-f2bb-4664-92a4-1d866648c0ac");
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bike);
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.INTERNET}, 1);
         }
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
 
-        tX=(TextView)findViewById(R.id.currentX);
-        tY=(TextView)findViewById(R.id.currentY);
-        tZ=(TextView)findViewById(R.id.currentZ);
-        tMX=(TextView)findViewById(R.id.maxX);
-        tMY=(TextView)findViewById(R.id.maxY);
-        tMZ=(TextView)findViewById(R.id.maxZ);
-        tLati=(TextView)findViewById(R.id.currentLati);
-        tLongi=(TextView)findViewById(R.id.currentLongi);
+        tX = (TextView) findViewById(R.id.currentX);
+        tY = (TextView) findViewById(R.id.currentY);
+        tZ = (TextView) findViewById(R.id.currentZ);
+        tMX = (TextView) findViewById(R.id.maxX);
+        tMY = (TextView) findViewById(R.id.maxY);
+        tMZ = (TextView) findViewById(R.id.maxZ);
+        tLati = (TextView) findViewById(R.id.currentLati);
+        tLongi = (TextView) findViewById(R.id.currentLongi);
 
-        mX=0;
-        mY=0;
-        mZ=0;
+        mX = 0;
+        mY = 0;
+        mZ = 0;
 
-        WifiManager manager=(WifiManager)getSystemService(Context.WIFI_SERVICE);
+        WifiManager manager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         WifiInfo info = manager.getConnectionInfo();
-        macAddress=info.getMacAddress();
+        macAddress = info.getMacAddress();
 
-        sensorManager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        accelerometer=sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        sensorManager.registerListener(new mySensorListener(), accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        boolean connected = PebbleKit.isWatchConnected(getApplicationContext());
+        Toast.makeText(getApplicationContext(), connected?"Connected":"not", Toast.LENGTH_LONG);
+        if (connected) {
+            PebbleKit.startAppOnPebble(getApplicationContext(), pebAppUID);
 
-        locationManager=(LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        criteria=new Criteria();
+            PebbleKit.PebbleDataReceiver pebDataReceiver = new PebbleKit.PebbleDataReceiver(pebAppUID) {
+                @Override
+                public void receiveData(Context context, int i, PebbleDictionary pebbleDictionary) {
+                    PebbleKit.sendAckToPebble(context, i);
+
+                    aX = Double.parseDouble(pebbleDictionary.getString(0));
+                    aY = Double.parseDouble(pebbleDictionary.getString(1));
+                    aZ = Double.parseDouble(pebbleDictionary.getString(2));
+
+                    if (mX < aX) {
+                        mX = aX;
+                    }
+                    if (mY < aY) {
+                        mY = aY;
+                    }
+                    if (mZ < aZ) {
+                        mZ = aZ;
+                    }
+
+                    tX.setText(Double.toString(aX));
+                    tY.setText(Double.toString(aY));
+                    tZ.setText(Double.toString(aZ));
+
+                    tMX.setText(Double.toString(mX));
+                    tMY.setText(Double.toString(mY));
+                    tMZ.setText(Double.toString(mZ));
+
+                    eventDetectionState = evaluateSignalState(eventDetectionState, Math.sqrt(Math.pow(aX, 2) + Math.pow(aY, 2) + Math.pow(aZ, 2)));
+
+                }
+            };
+
+            PebbleKit.registerReceivedDataHandler(getApplicationContext(), pebDataReceiver);
+        }
+        else {
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+            sensorManager.registerListener(new mySensorListener(), accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        provider=locationManager.getBestProvider(criteria, false);
+        provider = locationManager.getBestProvider(criteria, false);
 
-        Location location=locationManager.getLastKnownLocation(provider);
+        Location location = locationManager.getLastKnownLocation(provider);
 
         myListener = new myLocationListener();
 
-        if(location!=null){
+        if (location != null) {
             myListener.onLocationChanged(location);
-        }
-        else {
-            Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        } else {
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
             startActivity(intent);
         }
 
@@ -113,6 +159,39 @@ public class Bike extends Activity {
 
         tts = new talkToServer("bike1", "bike");
         lastTime = System.currentTimeMillis();
+    }
+
+    private int evaluateSignalState(int prevState, double accR) {
+        int retState = prevState;
+        switch (prevState) {
+            case 0:
+                if (accR > 2) {
+                    retState = 1;
+                }
+                break;
+            case 1:
+                if (accR < 0.5) {
+                    retState = 0;
+                    if (!status) {
+                        WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
+
+                        wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
+                                macAddress, "bike", gLati, gLongi, 0.000, "N", 1)});
+                        Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
+                        status = !status;
+                    }
+                    else {
+                        WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
+
+                        wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
+                                macAddress, "bike", gLati, gLongi, 0.000, "N", 0)});
+                        Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
+                        status = !status;
+                    }
+                }
+                break;
+        }
+        return retState;
     }
 
     private class mySensorListener implements SensorEventListener {
@@ -164,49 +243,6 @@ public class Bike extends Activity {
                     lastTime = System.currentTimeMillis();
                 }
             }*/
-        }
-
-        private int evaluateSignalState(int prevState, double accR) {
-            int retState = prevState;
-            switch (prevState) {
-                case 0:
-                    if (accR > 3) {
-                        retState = 1;
-                    }
-                    break;
-                case 1:
-                    if (accR < 1) {
-                        retState = 2;
-                    }
-                    break;
-                case 2:
-                    if (accR > 3) {
-                        retState = 3;
-                    }
-                    break;
-                case 3:
-                    if (accR < 1) {
-                        retState = 0;
-                        if (!status) {
-                            WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
-
-                            wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
-                                    macAddress, "bike", gLati, gLongi, 0.000, "N", 1)});
-                            Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
-                            status = !status;
-                        }
-                        else {
-                            WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
-
-                            wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
-                                    macAddress, "bike", gLati, gLongi, 0.000, "N", 0)});
-                            Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
-                            status = !status;
-                        }
-                    }
-                    break;
-            }
-            return retState;
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy){
