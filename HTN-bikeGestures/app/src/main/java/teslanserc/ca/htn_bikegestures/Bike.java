@@ -58,6 +58,8 @@ public class Bike extends Activity {
 
     private String macAddress;
 
+    private int eventDetectionState = 0;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bike);
@@ -138,7 +140,9 @@ public class Bike extends Activity {
             tMY.setText(Double.toString(mY));
             tMZ.setText(Double.toString(mZ));
 
-            if (System.currentTimeMillis() - lastTime > 5000)
+            eventDetectionState = evaluateSignalState(eventDetectionState, Math.sqrt(Math.pow(aX,2)+Math.pow(aY,2)+Math.pow(aZ,2)));
+
+            /*if (System.currentTimeMillis() - lastTime > 5000)
             {
                 if(Math.sqrt(Math.pow(aX,2)+Math.pow(aY,2)+Math.pow(aZ,2))>5){
                     if (!status) {
@@ -159,7 +163,50 @@ public class Bike extends Activity {
                     }
                     lastTime = System.currentTimeMillis();
                 }
+            }*/
+        }
+
+        private int evaluateSignalState(int prevState, double accR) {
+            int retState = prevState;
+            switch (prevState) {
+                case 0:
+                    if (accR > 3) {
+                        retState = 1;
+                    }
+                    break;
+                case 1:
+                    if (accR < 1) {
+                        retState = 2;
+                    }
+                    break;
+                case 2:
+                    if (accR > 3) {
+                        retState = 3;
+                    }
+                    break;
+                case 3:
+                    if (accR < 1) {
+                        retState = 0;
+                        if (!status) {
+                            WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
+
+                            wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
+                                    macAddress, "bike", gLati, gLongi, 0.000, "N", 1)});
+                            Toast.makeText(getApplicationContext(), "1", Toast.LENGTH_SHORT).show();
+                            status = !status;
+                        }
+                        else {
+                            WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
+
+                            wst.execute(new String[]{MainActivity.serverAddress + String.format("upload/%s/%s/%f/%f/%f/%s/%d",
+                                    macAddress, "bike", gLati, gLongi, 0.000, "N", 0)});
+                            Toast.makeText(getApplicationContext(), "0", Toast.LENGTH_SHORT).show();
+                            status = !status;
+                        }
+                    }
+                    break;
             }
+            return retState;
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy){
