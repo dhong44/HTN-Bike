@@ -92,6 +92,10 @@ public class Bike extends Activity {
 
         lastLat=Double.NaN;
         lastLong=Double.NaN;
+
+        WifiManager manager=(WifiManager)getSystemService(Context.WIFI_SERVICE);
+        WifiInfo info = manager.getConnectionInfo();
+        macAddress=info.getMacAddress();
         
         boolean connected = PebbleKit.isWatchConnected(getApplicationContext());
         Toast.makeText(getApplicationContext(), connected?"Connected":"not", Toast.LENGTH_LONG);
@@ -103,9 +107,9 @@ public class Bike extends Activity {
                 public void receiveData(Context context, int i, PebbleDictionary pebbleDictionary) {
                     PebbleKit.sendAckToPebble(context, i);
 
-                    aX = Double.parseDouble(pebbleDictionary.getString(0));
-                    aY = Double.parseDouble(pebbleDictionary.getString(1));
-                    aZ = Double.parseDouble(pebbleDictionary.getString(2));
+                    aX = (double)(pebbleDictionary.getInteger(0))*9.8/1000;
+                    aY = (double)(pebbleDictionary.getInteger(1))*9.8/1000;
+                    aZ = (double)(pebbleDictionary.getInteger(2))*9.8/1000;
 
                     if (mX < aX) {
                         mX = aX;
@@ -125,7 +129,7 @@ public class Bike extends Activity {
                     tMY.setText(Double.toString(mY));
                     tMZ.setText(Double.toString(mZ));
 
-                    eventDetectionState = evaluateSignalState(eventDetectionState, Math.sqrt(Math.pow(aX, 2) + Math.pow(aY, 2) + Math.pow(aZ, 2)));
+                    eventDetectionState = evaluateSignalState(eventDetectionState, Math.abs(aY));
 
                 }
             };
@@ -164,12 +168,12 @@ public class Bike extends Activity {
         int retState = prevState;
         switch (prevState) {
             case 0:
-                if (accR > 2) {
+                if (accR > 11.5) {
                     retState = 1;
                 }
                 break;
             case 1:
-                if (accR < 0.5) {
+                if (accR < 10.5) {
                     retState = 0;
                     if (!status) {
                         WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");

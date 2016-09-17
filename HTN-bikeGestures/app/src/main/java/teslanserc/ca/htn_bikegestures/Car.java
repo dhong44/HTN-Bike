@@ -211,7 +211,6 @@ public class Car extends Activity {
                 for (int i = 0; i < bikes.length; i++) {
                     //if(getOrientation(direction)==bikes[0].split(",")[5]){
                         //if(behind(getOrientation(direction), gLati, Double.parseDouble(bikes[0].split(",")[2]), gLongi, Double.parseDouble(bikes[0].split(",")[3]))){
-                            Toast.makeText(getApplicationContext(), Integer.parseInt(bikes[0].split(",")[6]) + response, Toast.LENGTH_SHORT).show();
                             if (Integer.parseInt(bikes[0].split(",")[6]) > 0) {
                                 slowDown = true;
                                 break;
