@@ -48,7 +48,7 @@ public class talkToServer {
             BufferedReader in = new BufferedReader(new InputStreamReader(requestConnection.getInputStream()));
             String response = in.readLine();
             if (!response.equalsIgnoreCase("FAILURE") && !response.isEmpty()) {
-                
+                return 0;
             }
             else {
                 return -1;
