@@ -1,5 +1,7 @@
 package teslanserc.ca.htn_bikegestures;
 
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -96,6 +98,8 @@ public class talkToServer {
             }
         }
         catch (Exception e) {
+            //Toast toast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG);
+            //toast.show();
             return null;
         }
     }
