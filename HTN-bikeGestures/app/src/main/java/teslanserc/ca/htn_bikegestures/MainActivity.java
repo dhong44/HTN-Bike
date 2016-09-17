@@ -1,7 +1,10 @@
 package teslanserc.ca.htn_bikegestures;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -12,8 +15,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -33,6 +39,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
 
         tX=(TextView)findViewById(R.id.currentX);
         tY=(TextView)findViewById(R.id.currentY);
@@ -56,6 +66,16 @@ public class MainActivity extends Activity {
         Location location=locationManager.getLastKnownLocation(provider);
 
         myListener = new myLocationListener();
+
+        if(location!=null){
+            myListener.onLocationChanged(location);
+        }
+        else {
+            Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(intent);
+        }
+
+        locationManager.requestLocationUpdates(provider, 200, 1, myListener);
     }
 
     private class mySensorListener implements SensorEventListener{
@@ -67,6 +87,8 @@ public class MainActivity extends Activity {
             tX.setText(Double.toString(aX));
             tY.setText(Double.toString(aY));
             tZ.setText(Double.toString(aZ));
+
+
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy){
@@ -80,6 +102,8 @@ public class MainActivity extends Activity {
             gLongi=location.getLongitude();
             tLati.setText(Double.toString(gLati));
             tLongi.setText(Double.toString(gLongi));
+
+            Toast.makeText(MainActivity.this, "Shit's updating", Toast.LENGTH_SHORT).show();
         }
 
         public void onStatusChanged(String provider, int status, Bundle extras){
