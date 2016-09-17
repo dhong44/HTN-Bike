@@ -92,9 +92,6 @@ public class Bike extends Activity {
         locationManager.requestLocationUpdates(provider, 200, 1, myListener);
 
         tts = new talkToServer("bike1", "bike");
-        try {
-            tts.upload(0.000, 0.000, 0.000, "N", 0);
-        }catch(Exception e){System.out.println(e.getMessage()); System.exit(1); }
         lastTime = System.currentTimeMillis();
     }
 
@@ -127,22 +124,10 @@ public class Bike extends Activity {
             {
                 if(Math.sqrt(Math.pow(aX,2)+Math.pow(aY,2)+Math.pow(aZ,2))>5){
                     if (!status) {
-                        try {
                             tts.upload(gLati, gLongi, 0.000, "N", 1);
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
                     }
                     else {
-                        try {
                             tts.upload(gLati, gLongi, 0.000, "N", 0);
-                        }
-                        catch (Exception e)
-                        {
-
-                        }
                     }
                 }
             }
