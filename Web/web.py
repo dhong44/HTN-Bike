@@ -14,7 +14,7 @@ class Bike:
                  print self.id, self.vehicle_type, self.latitude, self.longitude, self.speed, self.direction, self.status, self.time
 
         def csv(self):
-                string = str(self.id) + ', ' + str(self.vehicle_type) + ', ' + str(self.latitude) + ', ' + str(self.longitude) + ', ' + str(self.speed) + ', ' + str(self.direction) + ', ' + str(self.status)
+                string = str(self.id) + ',' + str(self.vehicle_type) + ',' + str(self.latitude) + ',' + str(self.longitude) + ',' + str(self.speed) + ',' + str(self.direction) + ',' + str(self.status)
                 return string 
 
 bikes = []
