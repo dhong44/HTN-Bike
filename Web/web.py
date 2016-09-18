@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 from sqlite_ import insert
 from time import time
+from math import sin, cos, sqrt, atan2, radians
 app = Flask(__name__)
 
 class Bike:
@@ -22,7 +23,7 @@ def distance(lat1, long1, lat2, lon2):
 		R = 6373.0
 		
 		lat1 = radians(lat1)
-		lon1 = radians(lon1)
+		lon1 = radians(long1)
 		lat2 = radians(lat2)
 		lon2 = radians(lon2)
 		
@@ -77,6 +78,4 @@ def retrieve(latitude, longitude):
 
 if __name__== '__main__':
 	app.run('0.0.0.0', debug=True)
-        
-
         
