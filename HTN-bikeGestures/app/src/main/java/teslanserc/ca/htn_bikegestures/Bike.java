@@ -168,12 +168,12 @@ public class Bike extends Activity {
         int retState = prevState;
         switch (prevState) {
             case 0:
-                if (accR > 11.5) {
+                if (accR > 9.5) {
                     retState = 1;
                 }
                 break;
             case 1:
-                if (accR < 10.5) {
+                if (accR < 9.5) {
                     retState = 0;
                     if (!status) {
                         WebServiceTask wst = new WebServiceTask(WebServiceTask.GET_TASK, Bike.this, "Posting data...");
