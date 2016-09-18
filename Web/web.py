@@ -69,11 +69,14 @@ def retrieve(latitude, longitude):
         string = ''
 
         for i in bikes:
-                #if ((time - i.time) < 15):
-                string = string + i.csv() + '\n'
+                if ((Tim - i.time) < 10):
+					if (distance(float(latitude), float(longitude), float(i.latitude), float(i.longitude))):
+						string = string + i.csv() + '\n'
 
         return string
 
 if __name__== '__main__':
 	app.run('0.0.0.0', debug=True)
+        
+
         
