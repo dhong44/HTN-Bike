@@ -1,0 +1,21 @@
+{
+    "author": "sidb97@gmail.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "bike-arm-gesture",
+    "pebble": {
+        "displayName": "Bike Arm Gesture",
+        "enableMultiJS": true,
+        "messageKeys": [],
+        "projectType": "native",
+        "resources": {
+            "media": []
+        },
+        "sdkVersion": "3",
+        "uuid": "621867f0-f2bb-4664-92a4-1d866648c0ac",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.0.0"
+}
