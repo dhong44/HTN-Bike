@@ -10,7 +10,7 @@ import android.widget.Button;
 
 public class MainActivity extends Activity {
     Button bike, car;
-    public static final String serverAddress = "http://192.168.0.187:5000/";
+    public static final String serverAddress = "http://10.21.213.29:5000/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
